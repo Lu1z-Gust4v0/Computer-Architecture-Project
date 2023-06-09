@@ -43,4 +43,3 @@ def write_byte(add,val):
     val_word = val_word | val          # val_word = 34DD4F33
 
     memory[end_word] = val_word
-
