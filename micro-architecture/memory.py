@@ -37,7 +37,7 @@ class Memory:
 
     def write_byte(self, address, value):
         # Get 8 bits of value
-        # byte_value = value & 0xFF 
+        byte_value = value & 0xFF 
         word_address = (address & 0b11111111111111111111) >> 2 
         byte_address = address & 0b11   
 
@@ -45,8 +45,8 @@ class Memory:
         mask = ~(0xFF << (byte_address << 3))  
         
         word_value = self.memory[word_address] & mask         
-        byte_value = value << (byte_address << 3)       
-        new_word_value = word_value | byte_value          
+        new_byte_value = byte_value << (byte_address << 3)       
+        new_word_value = word_value | new_byte_value          
 
         self.memory[word_address] = new_word_value
 
