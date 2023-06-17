@@ -2,11 +2,11 @@
 import sys
 from memory import memory
 from cpu import cpu 
-import clock as clk 
+from clock import clock 
 import disk
 
 disk.read(str(sys.argv[1]))
 
-clk.start([cpu])
+clock.start(cpu)
 
-print("Depois: ", memory.read_word(1))
+print("After: ", memory.read_word(1))
