@@ -2,8 +2,6 @@ from array import array
 
 TOTAL_SIZE = 512
 
-firmware = array('L', [0]) * TOTAL_SIZE
-
 class Firmware:
     def __init__(self, total_size=TOTAL_SIZE):
         self.firmware = array('L', [0]) * total_size
