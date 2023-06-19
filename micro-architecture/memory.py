@@ -1,45 +1,53 @@
 from array import array
 
-# memória de 32 bits
-memory = array("L", [0]) * (1024*1024//4)  # 1MB / 262.144 words (218) / 1 word = 4 bytes
-# 0 - 262.143
+# We have 1 MB of space. Since each memory word has 32 bits (4 bytes), we have to divide 
+# 1 MB by 4 bytes to get the amount of words in our memory. 
+# We'll have 262.144 avaliable positions in the memory.
+ONE_MEGABYTE = 1024 * 1024
+WORD_SIZE = 4
 
-# funções de acesso (ignorar bits de overflow)
+class Memory: 
+    def __init__(self, total_space=ONE_MEGABYTE, word_size=WORD_SIZE):
+        self.memory = array("l", [0]) * (total_space // word_size)
 
-def read_word(add):
-    add = add & 0b111111111111111111
-    return memory[add]
+    # Access functions
+    def read_word(self, address):
+        # get the first 18 bits of address
+        word_address = address & 0b111111111111111111
+        return self.memory[word_address]
 
-def write_word(add, val):
-    add = add & (2**18-1)
-    val = val & 0xFFFFFFFF
-    memory[add] = val
+    def write_word(self, address, value):
+        # get the first 18 bits of address
+        word_address = address & 0b111111111111111111
+        # get the first 32 bits of value
+        word_value = value & 0xFFFFFFFF
+        self.memory[word_address] = word_value
 
-def read_byte(add):
-    # determinar qual a palavra
-    add = add & 0b1111111111111111111 # 2^20-1
-    end_word = add >> 2   # divisão por 4
-    val_word = memory[end_word]
+    def read_byte(self, address):
+        # Get the word address
+        word_address = (address & 0b11111111111111111111) >> 2 # divide by 4
+        # Get the byte position within the word
+        byte_address = address & 0b11   # division rest
+        
+        word_value = self.memory[word_address]
+        byte_value = word_value >> (byte_address << 3)
+        byte_value = byte_value & 0xFF
 
-    # determinar o byte dentro da palavra
-    end_byte = add & 0b11   # resto da divisão por 4
-    val_byte = val_word >> (end_byte << 3)
-    val_byte = val_byte & 0xFF
-    return val_byte
+        return byte_value
 
-def write_byte(add,val):
-    val = val & 0xFF                   # e.g. val = DD
-    add = add & 0b1111111111111111111  # 2^20-1
-    end_word = add >> 2   # divisão por 4
-    val_word = memory[end_word]        # 34CC4F33
+    def write_byte(self, address, value):
+        # Get 8 bits of value
+        byte_value = value & 0xFF 
+        word_address = (address & 0b11111111111111111111) >> 2 
+        byte_address = address & 0b11   
 
-    end_byte = add & 0b11   # resto da divisão por 4
-    
-    mask = ~(0xFF << (end_byte << 3))  # FF00FFFF
-    val_word = val_word & mask         # 34004F33
+        # Filter others bytes from word
+        mask = ~(0xFF << (byte_address << 3))  
+        
+        word_value = self.memory[word_address] & mask         
+        new_byte_value = byte_value << (byte_address << 3)       
+        new_word_value = word_value | new_byte_value          
 
-    val = val << (end_byte << 3)       # val = 00DD0000
- 
-    val_word = val_word | val          # val_word = 34DD4F33
+        self.memory[word_address] = new_word_value
 
-    memory[end_word] = val_word
+memory = Memory()  
