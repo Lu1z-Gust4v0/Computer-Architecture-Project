@@ -1,5 +1,6 @@
 from firmware import firmware
 from memory import memory
+from IFU import IFU
 
 alu_operations = {
     0b011000: lambda A, B: A, 
@@ -26,72 +27,125 @@ shifts = {
     0b10: lambda A: A >> 1,
     0b11: lambda A: A << 8,
 }
-
+# next address | jmp | alu | C | A | B | write read fecth
+# 000000000_000_00000000_00000000_000_000_000
+#     9      3     8        8      3   3   3
 registers = {
     "MPC": 0,
     "MIR": 0,
 
     "MAR": 0,
-    "MDR": 0,
-    "PC": 0,
-    "MBR": 0,
-    "X": 0,
-    "Y": 0,
-    "H": 0,
+    "MDR": 0, # 0 0
+    "PC": 0,  # 1 1
+
+    "MBR1": 0, # 2
+    "MBR2": 0, # 3
+
+    "X1": 0, # 4 2
+    "X2": 0, # 5 3
+    "X3": 0, # 6 4
+    "H": 0, # 7 5
 
     # Alu's output registers
     "N": 0,
     "Z": 1,
 }
 
+reg_code = {
+    0: "MAR",
+    1: "MDR",
+    2: "MBR1", 
+    3: "MBR2",
+    4: "X1",
+    5: "X2",
+    6: "X3",
+    7: "H"
+}
+
 class CPU: 
-    def __init__(self, registers=registers, firmware=firmware):
+    def __init__(self, registers=registers, firmware=firmware, ifu=IFU):
         self.registers = registers
         self.firmware = firmware
-        BUS_A = 0
-        BUS_B = 0
-        BUS_C = 0
+        self.ifu = ifu
+        self.BUS_A = 0
+        self.BUS_B = 0
+        self.BUS_C = 0
+
+    def read_mbr1(self):
+        mbr1 = self.registers["MBR1"]
+        self.ifu.consume_mbr1()
+        self.ifu.load(self)
+
+        self.registers["PC"] += 1 
+        
+        return mbr1
+
+    def read_mbr2(self):
+        mbr2 = self.registers["MBR2"]
+        self.ifu.consume_mbr2()
+        self.ifu.load(self)
+        self.registers["PC"] += 2
+
+        return mbr2
+
+    def fetch(self):
+        self.ifu.fetch(memory)
+        self.ifu.load(self) 
+
+    def update_pc(self, value):
+        self.registers["PC"] = value
+        self.ifu.IMAR = value
 
     # Write selected registers into BUS_A and BUS_B (ALU's inputs)
-    def read_regs(self, reg_num):
-        self.BUS_A = self.registers["H"]
-    
-        if reg_num == 0:
-            self.BUS_B = self.registers["MDR"]
-        elif reg_num == 1:
-            self.BUS_B = self.registers["PC"]
-        elif reg_num == 2:
-            self.BUS_B = self.registers["MBR"]
-        elif reg_num == 3:
-            self.BUS_B = self.registers["X"]
-        elif reg_num == 4:
-            self.BUS_B = self.registers["Y"]
-        else:
-            self.BUS_B = 0
+    def read_regs(self, mir):
+        register_a = ((mir >> 28) & 0b111000000) << 6
+        register_b = ((mir >> 31) & 0b111000) << 3
+
+        self.BUS_A = self.registers[reg_code[register_a]]
+        self.BUS_B = self.registers[reg_code[register_b]]
+
+        # Consume MBRs 
+        if reg_code[register_a] == "MBR1":
+            self.BUS_A = self.read_mbr1()
+
+        if reg_code[register_a] == "MBR2":
+            self.BUS_A = self.read_mbr2()
+
+        if reg_code[register_b] == "MBR1":
+            self.BUS_B = self.read_mbr1()
+
+        if reg_code[register_b] == "MBR2":
+            self.BUS_B = self.read_mbr2()
 
     # Write BUS_C value into a register
-    def write_regs(self, reg_bits):
-        if reg_bits & 0b100000:
+    def write_regs(self, mir):
+        write_bits = ((mir > 20) & 0b11111111000000000) << 9
+
+        if write_bits & 0b10000000:
             self.registers["MAR"] = self.BUS_C
             
-        if reg_bits & 0b010000:
+        if write_bits & 0b01000000:
             self.registers["MDR"] = self.BUS_C
             
-        if reg_bits & 0b001000:
-            self.registers["PC"] = self.BUS_C
+        if write_bits & 0b00100000:
+            self.update_pc(self.BUS_C)
+
+        if write_bits & 0b00010000:
+            self.registers["X1"] = self.BUS_C
             
-        if reg_bits & 0b000100:
-            self.registers["X"] = self.BUS_C
-            
-        if reg_bits & 0b000010:
-            self.registers["Y"] = self.BUS_C
-            
-        if reg_bits & 0b000001:
+        if write_bits & 0b00001000:
+            self.registers["X2"] = self.BUS_C
+
+        if write_bits & 0b00000100:
+            self.registers["X3"] = self.BUS_C
+
+        if write_bits & 0b00000010:
             self.registers["H"] = self.BUS_C
 
     # Emulates the behavior of an ALU
-    def alu(self, control_bits):
-        
+    def alu(self, mit):
+        control_bits = ((mit >> 12) & 0b1111111100000000000000000) << 17
+
         INPUT_A = self.BUS_A 
         INPUT_B = self.BUS_B
         OUTPUT = 0
@@ -113,9 +167,10 @@ class CPU:
         self.BUS_C = OUTPUT
 
     # Calculate the next instruction
-    def next_instruction(self, instruction, jam):
-        next_instruction = instruction
-    
+    def next_instruction(self, mir):
+        next_instruction = mir >> 28
+        jam = (mir >> 25) & 0b111
+
         if jam == 0b000:
             self.registers["MPC"] = next_instruction
             return
@@ -126,20 +181,22 @@ class CPU:
             next_instruction = next_instruction | (self.registers["N"] << 8)
 
         if jam & 0b100:                 # JMPC
-            next_instruction = next_instruction | self.registers["MBR"]
+            next_instruction = next_instruction | self.read_mbr1()
         
         self.registers["MPC"] = next_instruction
 
     # Operations with memory
-    def memory_io(self, mem_bits):
+    def memory_io(self, mir):
+        memory_bits = mir & 0b111
+
+        if memory_bits & 0b001:                # FETCH
+            self.fetch(memory)
+            # self.registers["MBR"] = memory.read_byte(self.registers["PC"])
         
-        if mem_bits & 0b001:                # FETCH
-            self.registers["MBR"] = memory.read_byte(self.registers["PC"])
-        
-        if mem_bits & 0b010:                # READ
+        if memory_bits & 0b010:                # READ
             self.registers["MDR"] = memory.read_word(self.registers["MAR"])
         
-        if mem_bits & 0b100:                # WRITE
+        if memory_bits & 0b100:                # WRITE
            memory.write_word(self.registers["MAR"], self.registers["MDR"])
 
     # Emulates one cpu 'step'
@@ -149,16 +206,12 @@ class CPU:
         if self.registers["MIR"] == 0:
             return False    
         
-        self.read_regs(self.registers["MIR"] & 0b00000000000000000000000000000111)
-        self.alu((self.registers["MIR"] & 0b00000000000011111111000000000000) >> 12)
-        self.write_regs((self.registers["MIR"] & 0b00000000000000000000111111000000) >> 6)
-        self.memory_io((self.registers["MIR"] & 0b00000000000000000000000000111000) >> 3)
-        self.next_instruction(
-            (self.registers["MIR"] & 0b11111111100000000000000000000000) >> 23,
-            (self.registers["MIR"] & 0b00000000011100000000000000000000) >> 20
-        )
-        
-                        
+        self.read_regs(self.registers["MIR"])
+        self.alu(self.registers["MIR"])
+        self.write_regs(self.registers["MIR"])
+        self.memory_io(self.registers["MIR"])
+        self.next_instruction(self.registers["MIR"])
+                     
         return True
 
 cpu = CPU()

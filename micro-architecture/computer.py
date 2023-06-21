@@ -1,6 +1,6 @@
-import ufc2x as cpu
+from cpu import cpu
 from memory import memory
-import clock as clk
+from clock import clock
 
 memory.write_word(50, 21) 
 memory.write_word(100, 32)
@@ -30,6 +30,6 @@ memory.write_byte(10, 150)
 memory.write_byte(11, 255)
 
 
-clk.start([cpu])
+clock.start(cpu)
 
 print(memory.read_word(150))

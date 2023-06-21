@@ -25,7 +25,8 @@ class Memory:
 
     def read_byte(self, address):
         # Get the word address
-        word_address = (address & 0b11111111111111111111) >> 2 # divide by 4
+        # 00000000_00000000_00000000_00000000
+        word_address = (address & 0b111111111111111111) 
         # Get the byte position within the word
         byte_address = address & 0b11   # division rest
         
@@ -38,7 +39,7 @@ class Memory:
     def write_byte(self, address, value):
         # Get 8 bits of value
         byte_value = value & 0xFF 
-        word_address = (address & 0b11111111111111111111) >> 2 
+        word_address = (address & 0b111111111111111111) 
         byte_address = address & 0b11   
 
         # Filter others bytes from word
