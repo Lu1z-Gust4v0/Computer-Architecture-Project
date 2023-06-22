@@ -35,6 +35,10 @@ class Queue:
 
         self.length += 1
 
+    def clear(self):
+        while not self.is_empty():
+            self.dequeue()
+
     def dequeue(self):
         if self.is_empty():
             return 
@@ -76,9 +80,9 @@ class IFU:
         second_bits = 0
         
         if not self.shift_register.is_empty():
-            first_bits = self.shift_register.first  
+            first_bits = self.shift_register.first.value  
             if self.shift_register.first.next is not None:
-                second_bits = self.shift_register.first.next  
+                second_bits = self.shift_register.first.next.value  
 
         cpu.registers["MBR1"] = first_bits
         cpu.registers["MBR2"] = (second_bits << 8) | first_bits
@@ -90,4 +94,10 @@ class IFU:
         self.shift_register.dequeue()
         self.shift_register.dequeue()
 
-IFO = IFU()
+    def update_imar(self, pc):
+        # PC stores the current byte and IMAR stores the current word. 
+        # We have to convert bytes count to word count
+        self.IMAR = pc >> 2
+        self.shift_register.clear()
+
+ifu = IFU()
