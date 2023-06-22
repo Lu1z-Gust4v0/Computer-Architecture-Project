@@ -1,8 +1,9 @@
 from firmware import firmware
 from memory import memory
-from IFU import IFU
+from IFU import ifu
 
 alu_operations = {
+    0b000000: lambda A, B: 0,
     0b011000: lambda A, B: A, 
     0b010100: lambda A, B: B,
     0b011010: lambda A, B: ~A, 
@@ -20,16 +21,18 @@ alu_operations = {
     0b110001: lambda A, B: 1, 
     0b110010: lambda A, B: -1, 
 }
-
+                                                                                                                 
 shifts = {
     0b00: lambda A: A,
     0b01: lambda A: A << 1,
     0b10: lambda A: A >> 1,
     0b11: lambda A: A << 8,
 }
-# next address | jmp | alu | C | A | B | write read fecth
+
+# next address | jmp | alu | C | write read fetch | A | B | 
 # 000000000_000_00000000_00000000_000_000_000
 #     9      3     8        8      3   3   3
+
 registers = {
     "MPC": 0,
     "MIR": 0,
@@ -63,7 +66,8 @@ reg_code = {
 }
 
 class CPU: 
-    def __init__(self, registers=registers, firmware=firmware, ifu=IFU):
+    def __init__(self, registers=registers, memory=memory, firmware=firmware, ifu=ifu):
+        self.memory = memory
         self.registers = registers
         self.firmware = firmware
         self.ifu = ifu
@@ -88,18 +92,20 @@ class CPU:
 
         return mbr2
 
-    def fetch(self):
-        self.ifu.fetch(memory)
+    def fetch_word(self):
+        self.ifu.fetch(self.memory)
         self.ifu.load(self) 
 
     def update_pc(self, value):
         self.registers["PC"] = value
-        self.ifu.IMAR = value
-
+        self.ifu.update_imar(value)
+        
     # Write selected registers into BUS_A and BUS_B (ALU's inputs)
     def read_regs(self, mir):
-        register_a = ((mir >> 28) & 0b111000000) << 6
-        register_b = ((mir >> 31) & 0b111000) << 3
+        register_a = (mir & 0b111000) << 3
+        register_b = mir & 0b111
+
+        print(register_a, register_b)
 
         self.BUS_A = self.registers[reg_code[register_a]]
         self.BUS_B = self.registers[reg_code[register_b]]
@@ -119,7 +125,7 @@ class CPU:
 
     # Write BUS_C value into a register
     def write_regs(self, mir):
-        write_bits = ((mir > 20) & 0b11111111000000000) << 9
+        write_bits = (mir & 0b11111111000000000) << 9
 
         if write_bits & 0b10000000:
             self.registers["MAR"] = self.BUS_C
@@ -144,7 +150,7 @@ class CPU:
 
     # Emulates the behavior of an ALU
     def alu(self, mit):
-        control_bits = ((mit >> 12) & 0b1111111100000000000000000) << 17
+        control_bits = (mit >> 17) & 0b11111111
 
         INPUT_A = self.BUS_A 
         INPUT_B = self.BUS_B
@@ -152,7 +158,7 @@ class CPU:
         
         shift_bits = (control_bits & 0b11000000) >> 6        
         operation_bits = control_bits & 0b00111111
-        
+
         OUTPUT = alu_operations[operation_bits](INPUT_A, INPUT_B)
             
         if OUTPUT == 0:
@@ -187,22 +193,22 @@ class CPU:
 
     # Operations with memory
     def memory_io(self, mir):
-        memory_bits = mir & 0b111
-
+        memory_bits = (mir & 0b111000000) >> 6
+        
         if memory_bits & 0b001:                # FETCH
-            self.fetch(memory)
+            self.fetch_word()
             # self.registers["MBR"] = memory.read_byte(self.registers["PC"])
         
         if memory_bits & 0b010:                # READ
-            self.registers["MDR"] = memory.read_word(self.registers["MAR"])
+            self.registers["MDR"] = self.memory.read_word(self.registers["MAR"])
         
         if memory_bits & 0b100:                # WRITE
-           memory.write_word(self.registers["MAR"], self.registers["MDR"])
+           self.memory.write_word(self.registers["MAR"], self.registers["MDR"])
 
     # Emulates one cpu 'step'
     def step(self):
-        self.registers["MIR"] = firmware.get_instruction(self.registers["MPC"])
-    
+        self.registers["MIR"] = self.firmware.get_instruction(self.registers["MPC"])
+
         if self.registers["MIR"] == 0:
             return False    
         
