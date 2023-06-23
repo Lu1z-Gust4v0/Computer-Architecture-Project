@@ -15,15 +15,29 @@ memory.write_byte(3, 100)
 # memory[150] = X1
 memory.write_byte(4, 5)
 memory.write_byte(5, 150)
+# goto 12
+memory.write_byte(6, 7)
+memory.write_byte(7, 12)
+# X1 <- X1 - memory[150]
+memory.write_byte(8, 0)
+memory.write_byte(9, 0)
+# X1 <- X1 - memory[150]
+memory.write_byte(10, 0)
+memory.write_byte(11, 0)
+
+# memory[777] = X1
+memory.write_byte(12, 5)
+memory.write_byte(13, 222)
 
 # halt
-memory.write_byte(6, 255)
+memory.write_byte(14, 255)
 
 clock.start(cpu)
 
 print(memory.read_word(150))
+print(memory.read_word(222))
 
-""" memory.write_word(50, 21) 
+""" memory.write_word(50, 21)
 memory.write_word(100, 32)
 memory.write_word(130, 10)
 
@@ -42,12 +56,11 @@ memory.write_byte(6, 100)    # ...[100]
 # X <- X - memory[130]
 memory.write_byte(7, 6)
 memory.write_byte(8, 130)
-    
+
 # memory[150] = X
 memory.write_byte(9, 10)
-memory.write_byte(10, 150)    
-    
+memory.write_byte(10, 150)
+
 # stop
 memory.write_byte(11, 255)
  """
-# print(memory.read_word(150))
