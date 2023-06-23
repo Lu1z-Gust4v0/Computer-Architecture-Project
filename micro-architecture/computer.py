@@ -3,19 +3,25 @@ from memory import memory
 from clock import clock
 
 # memory[50] = 2
-memory.write_word(50, 2)
+memory.write_word(50, 22)
 # memory[100] = 2
-memory.write_word(100, 2)
+memory.write_word(100, 13)
 # X1 <- X1 + memory[50]
 memory.write_byte(0, 1)
 memory.write_byte(1, 50)
 # X1 <- X1 + memory[100]
-memory.write_byte(2, 1)
+memory.write_byte(2, 3)
 memory.write_byte(3, 100)
+# memory[150] = X1
+memory.write_byte(4, 5)
+memory.write_byte(5, 150)
+
+# halt
+memory.write_byte(6, 255)
 
 clock.start(cpu)
 
-print(cpu.registers["X1"])
+print(memory.read_word(150))
 
 """ memory.write_word(50, 21) 
 memory.write_word(100, 32)
@@ -44,7 +50,4 @@ memory.write_byte(10, 150)
 # stop
 memory.write_byte(11, 255)
  """
-
-clock.start(cpu)
-
 # print(memory.read_word(150))
