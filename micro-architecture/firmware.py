@@ -48,6 +48,17 @@ firmware.set_instruction(5, 0b000000110_000_00010100_10000000_010_000_010)
 firmware.set_instruction(6, 0b000000000_100_00010100_01000000_101_000_100)
 
 # goto address 
+## PC <- MBR1; fetch; goto MBR1
+firmware.set_instruction(7, 0b000000000_100_00010100_00100000_001_000_010)
+
+## 13: PC <- PC + 1; fetch; goto 14
+# firmware.set_instruction(13, 0b00001110_000_00110101_001000_001_001)
+
+## 14: PC <- MBR; fetch; goto MBR
+# firmware.set_instruction(14, 0b00000000_100_00010100_001000_001_010)
+
+
+
 # if X == 0 goto address
 
 """ # main: PC <- PC + 1; MBR <- read_byte(PC); goto MBR
