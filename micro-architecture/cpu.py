@@ -102,10 +102,12 @@ class CPU:
         
     # Write selected registers into BUS_A and BUS_B (ALU's inputs)
     def read_regs(self, mir):
-        register_a = (mir & 0b111000) << 3
+        register_a = (mir & 0b111000) >> 3
         register_b = mir & 0b111
-
-        print(register_a, register_b)
+        
+        # self.ifu.shift_register.print_queue()
+        # print("length", self.ifu.shift_register.length)
+        # print(f"A: {register_a} B: {register_b}")
 
         self.BUS_A = self.registers[reg_code[register_a]]
         self.BUS_B = self.registers[reg_code[register_b]]
@@ -125,7 +127,7 @@ class CPU:
 
     # Write BUS_C value into a register
     def write_regs(self, mir):
-        write_bits = (mir & 0b11111111000000000) << 9
+        write_bits = (mir & 0b11111111000000000) >> 9
 
         if write_bits & 0b10000000:
             self.registers["MAR"] = self.BUS_C
@@ -161,6 +163,8 @@ class CPU:
 
         OUTPUT = alu_operations[operation_bits](INPUT_A, INPUT_B)
             
+        # print("ALU output", OUTPUT)
+
         if OUTPUT == 0:
             self.registers["N"] = 0
             self.registers["Z"] = 1
@@ -208,6 +212,8 @@ class CPU:
     # Emulates one cpu 'step'
     def step(self):
         self.registers["MIR"] = self.firmware.get_instruction(self.registers["MPC"])
+        # print("instruction:", bin(self.registers["MIR"]))
+        # print("state before", self.registers)
 
         if self.registers["MIR"] == 0:
             return False    
@@ -217,7 +223,10 @@ class CPU:
         self.write_regs(self.registers["MIR"])
         self.memory_io(self.registers["MIR"])
         self.next_instruction(self.registers["MIR"])
-                     
+
+        # print("state after:", self.registers)
+        # print()
+
         return True
 
 cpu = CPU()
