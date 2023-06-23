@@ -38,16 +38,16 @@ registers = {
     "MIR": 0,
 
     "MAR": 0,
-    "MDR": 0, # 0 0
-    "PC": 0,  # 1 1
+    "MDR": 0,
+    "PC": 0,
 
-    "MBR1": 0, # 2
-    "MBR2": 0, # 3
+    "MBR1": 0,
+    "MBR2": 0,
 
-    "X1": 0, # 4 2
-    "X2": 0, # 5 3
-    "X3": 0, # 6 4
-    "H": 0, # 7 5
+    "X1": 0,
+    "X2": 0,
+    "X3": 0,
+    "H": 0, 
 
     # Alu's output registers
     "N": 0,
@@ -88,6 +88,7 @@ class CPU:
         mbr2 = self.registers["MBR2"]
         self.ifu.consume_mbr2()
         self.ifu.load(self)
+        
         self.registers["PC"] += 2
 
         return mbr2
@@ -97,9 +98,11 @@ class CPU:
         self.ifu.load(self) 
 
     def update_pc(self, value):
-        self.registers["PC"] = value
+        # print(f"PC IS BEING UPDATED {value}")
+        self.registers["PC"] = value 
         self.ifu.update_imar(value)
-        
+        # print(f"IMAR VALUE {self.ifu.IMAR}")
+
     # Write selected registers into BUS_A and BUS_B (ALU's inputs)
     def read_regs(self, mir):
         register_a = (mir & 0b111000) >> 3
@@ -163,7 +166,7 @@ class CPU:
 
         OUTPUT = alu_operations[operation_bits](INPUT_A, INPUT_B)
             
-        # print("ALU output", OUTPUT)
+        print("ALU output", OUTPUT)
 
         if OUTPUT == 0:
             self.registers["N"] = 0
@@ -201,7 +204,6 @@ class CPU:
         
         if memory_bits & 0b001:                # FETCH
             self.fetch_word()
-            # self.registers["MBR"] = memory.read_byte(self.registers["PC"])
         
         if memory_bits & 0b010:                # READ
             self.registers["MDR"] = self.memory.read_word(self.registers["MAR"])
