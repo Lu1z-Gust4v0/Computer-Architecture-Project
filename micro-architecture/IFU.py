@@ -39,6 +39,16 @@ class Queue:
         while not self.is_empty():
             self.dequeue()
 
+    def print_queue(self):
+        queue = []
+        element = self.first
+
+        while element != None:
+            queue.append(element.value)
+            element = element.next
+
+        print("queue elements", queue)
+
     def dequeue(self):
         if self.is_empty():
             return 
