@@ -30,17 +30,25 @@ firmware.set_instruction(0, 0b000000000_100_00000000_00000000_001_000_000)
 firmware.set_instruction(255, 0b000000000_000_00000000_00000000_000_000_000)
 
 # add: X1 = X1 + memory[address]
-# MAR <- MBR1; read; goto 2
+## MAR <- MBR1; read; goto 2
 firmware.set_instruction(1, 0b000000010_000_00010100_10000000_010_000_010)
-# X1 <- X1 + MDR; fetch; goto MBR1
+## X1 <- X1 + MDR; fetch; goto MBR1
 firmware.set_instruction(2, 0b000000000_100_00111100_00010000_001_100_001)
 
-# X = X - memory[address]
-# memory[address] = X
+# sub: X1 = X1 - memory[address]
+## MAR <- MBR1; read; goto 4
+firmware.set_instruction(3, 0b000000100_000_00010100_10000000_010_000_010)
+## X1 <- X1 - MDR; fetch; goto MBR1
+firmware.set_instruction(4, 0b000000000_100_00111111_00010000_001_001_100)
+
+# memory[address] = X1
+## MAR <- MBR1; read; goto 6
+firmware.set_instruction(5, 0b000000110_000_00010100_10000000_010_000_010)
+## MDR <- X1; write; fetch; goto MBR1
+firmware.set_instruction(6, 0b000000000_100_00010100_01000000_101_000_100)
+
 # goto address 
 # if X == 0 goto address
-
-
 
 """ # main: PC <- PC + 1; MBR <- read_byte(PC); goto MBR
 firmware.set_instruction(0, 0b000000000_100_00110101_001000_001_001) 
