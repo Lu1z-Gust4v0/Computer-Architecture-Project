@@ -1,12 +1,13 @@
-class Node: 
+class Node:
     def __init__(self, value):
         self.value = value
         self.next = None
 
+
 class Queue:
     def __init__(self, max_length):
         self.first = None
-        self.last = None 
+        self.last = None
         self.length = 0
         self.max_length = max_length
 
@@ -22,11 +23,11 @@ class Queue:
 
     def enqueue(self, value):
         if self.is_full():
-            return 
-        
+            return
+
         new_node = Node(value)
 
-        if self.is_empty(): 
+        if self.is_empty():
             self.first = new_node
             self.last = new_node
         else:
@@ -43,7 +44,7 @@ class Queue:
         queue = []
         element = self.first
 
-        while element != None:
+        while element is not None:
             queue.append(element.value)
             element = element.next
 
@@ -51,48 +52,47 @@ class Queue:
 
     def dequeue(self):
         if self.is_empty():
-            return 
-        
+            return
+
         node = self.first
 
         if self.length == 1:
             self.first = None
-            self.last = None        
+            self.last = None
         else:
-            self.first = node.next  
+            self.first = node.next
 
         self.length -= 1
 
         return node.value
 
+
 MAX_SIZE_IN_BYTES = 7
 BYTES_IN_WORD = 4
+
 
 class IFU:
     def __init__(self):
         self.IMAR = 0
         self.shift_register = Queue(max_length=MAX_SIZE_IN_BYTES)
 
-    def get_byte(self, word, index):
-        return (word >> index * 8) & 0b11111111 
-
     def fetch(self, memory):
-        # 32 bits
+        # fetch 32 bits at a time
         if self.shift_register.length < 4:
-            word = memory.read_word(self.IMAR)
-            self.IMAR += 1
-
             for index in range(BYTES_IN_WORD):
-                self.shift_register.enqueue(self.get_byte(word, index))
-    
+                self.shift_register.enqueue(
+                    memory.read_byte(self.IMAR + index)
+                )
+            self.IMAR += 4
+
     def load(self, cpu):
         first_bits = 0
         second_bits = 0
-        
+
         if not self.shift_register.is_empty():
-            first_bits = self.shift_register.first.value  
+            first_bits = self.shift_register.first.value
             if self.shift_register.first.next is not None:
-                second_bits = self.shift_register.first.next.value  
+                second_bits = self.shift_register.first.next.value
 
         cpu.registers["MBR1"] = first_bits
         cpu.registers["MBR2"] = (second_bits << 8) | first_bits
@@ -105,9 +105,11 @@ class IFU:
         self.shift_register.dequeue()
 
     def update_imar(self, pc):
-        # PC stores the current byte and IMAR stores the current word. 
+        # PC stores the current byte and IMAR stores the current word.
         # We have to convert bytes count to word count
-        self.IMAR = pc >> 2
+        self.IMAR = pc
         self.shift_register.clear()
 
+
 ifu = IFU()
+
