@@ -1,9 +1,8 @@
-
 import sys
 from memory import memory
-from cpu import cpu 
-from clock import clock 
-import disk
+from cpu import cpu
+from clock import clock
+from disk import disk
 
 disk.read(str(sys.argv[1]))
 
