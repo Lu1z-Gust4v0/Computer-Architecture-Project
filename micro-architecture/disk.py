@@ -2,7 +2,7 @@ from memory import memory
 
 def read(img):
    disk = open(img, 'rb')
-   byte = disk.read(1)
+    byte = disk.read(1)
    byte_address = 0
    while byte:
       memory.write_byte(byte_address, int.from_bytes(byte, "little"))
