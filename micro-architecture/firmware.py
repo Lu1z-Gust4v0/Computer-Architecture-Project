@@ -25,8 +25,8 @@ class Firmware:
 #     9      3     8        8      3   3   3
 firmware = Firmware()
 
-# main: fetch; goto MBR1
-firmware.set_instruction(0, 0b000000000_100_00000000_00000000_001_000_000)
+# main: PC <- 1; fetch; goto MBR1
+firmware.set_instruction(0, 0b000000000_100_00110001_00100000_001_000_000)
 # HALT
 firmware.set_instruction(255, 0b000000000_000_00000000_00000000_000_000_000)
 
@@ -55,7 +55,7 @@ firmware.set_instruction(7, 0b000000000_100_00010100_00100000_001_000_010)
 # if X1 == 0 goto address
 # X1 <- X1; if alu = 0 goto 265 else goto 9
 firmware.set_instruction(8, 0b000001001_001_00010100_00010000_000_000_100)
-# fetch; goto MBR1
-firmware.set_instruction(9, 0b000000000_100_00000000_00000000_001_000_000)
+# pop MBR1; fetch; goto MBR1
+firmware.set_instruction(9, 0b000000000_100_00000000_00000000_001_000_010)
 # goto address
 firmware.set_instruction(265, 0b000000000_100_00010100_00100000_001_000_010)
