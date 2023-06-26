@@ -14,19 +14,6 @@ instructions = [
     "dec", "dec2", "dec3"
 ]
 
-one_operand_instructions = [
-    "inc", "inc2", "inc3",
-    "dec", "dec2", "dec3",
-    "cmp",
-]
-
-two_operand_instructions = [
-    "add", "add2", "add3",
-    "sub", "sub2", "sub3",
-    "mov", "mov2", "mov3",
-    "jz", "jz1", "jz3", "jzh"
-]
-
 instruction_set = {
     "add":  0x01,
     "add2": 0x0A,
@@ -51,6 +38,31 @@ instruction_set = {
     "dec3": 0x23,
     "halt": 0xFF
 }
+
+one_operand_instructions = [
+    "inc", "inc2", "inc3",
+    "dec", "dec2", "dec3",
+    "cmp",
+]
+
+two_operand_instructions = [
+    "add", "add2", "add3",
+    "sub", "sub2", "sub3",
+    "mov", "mov2", "mov3",
+    "jz", "jz1", "jz3", "jzh"
+]
+
+reg_memory_instructions_code = [
+    instruction_set["add"],
+    instruction_set["sub"],
+    instruction_set["mov"],
+    instruction_set["add2"],
+    instruction_set["sub2"],
+    instruction_set["mov2"],
+    instruction_set["add3"],
+    instruction_set["sub3"],
+    instruction_set["mov3"],
+]
 
 
 class Assembler:
@@ -213,11 +225,7 @@ class Assembler:
             # print("line bin", line)
             for i in range(len(line)):
                 if self.is_token(line[i]):
-                    if (
-                        line[i - 1] == self.instruction_set["add"] or
-                        line[i - 1] == self.instruction_set["sub"] or
-                        line[i - 1] == self.instruction_set["mov"]
-                    ):
+                    if (line[i - 1] in reg_memory_instructions_code):
                         line[i] = self.get_token_byte(line[i]) // 4
                     else:
                         line[i] = self.get_token_byte(line[i])
