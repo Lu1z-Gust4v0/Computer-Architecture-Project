@@ -167,6 +167,9 @@ class CPU:
         INPUT_A = self.BUS_A
         INPUT_B = self.BUS_B
         OUTPUT = 0
+        # alu output registers
+        self.registers["N"] = 0
+        self.registers["Z"] = 0
 
         shift_bits = (control_bits & 0b11000000) >> 6
         operation_bits = control_bits & 0b00111111
@@ -178,9 +181,8 @@ class CPU:
         if OUTPUT == 0:
             self.registers["N"] = 0
             self.registers["Z"] = 1
-
         # Check if alu output is a negative number
-        if ((OUTPUT & 0xFFFFFFFF) >> 31) == 1:
+        elif ((OUTPUT & 0xFFFFFFFF) >> 31) == 1:
             self.registers["N"] = 1
             self.registers["Z"] = 0
 
