@@ -8,7 +8,7 @@ instructions = [
     "sub", "sub2", "sub3",
     "mov", "mov2", "mov3",
     "jz", "jz2", "jz3",
-    "jzh", "cmp", "goto"
+    "jzh", "cmp", "goto",
     "halt", "wb", "ww"
 ]
 
