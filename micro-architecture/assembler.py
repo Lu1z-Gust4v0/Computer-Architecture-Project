@@ -9,7 +9,15 @@ instructions = [
     "mov", "mov2", "mov3",
     "jz", "jz2", "jz3",
     "jzh", "cmp", "goto",
-    "halt", "wb", "ww"
+    "halt", "wb", "ww",
+    "inc", "inc2", "inc3",
+    "dec", "dec2", "dec3"
+]
+
+one_operand_instructions = [
+    "inc", "inc2", "inc3",
+    "dec", "dec2", "dec3",
+    "cmp",
 ]
 
 two_operand_instructions = [
@@ -35,6 +43,12 @@ instruction_set = {
     "jz3":  0x18,
     "jzh":  0x1C,
     "cmp":  0x1A,
+    "inc":  0x1E,
+    "inc2": 0x1F,
+    "inc3": 0x20,
+    "dec":  0x21,
+    "dec2": 0x22,
+    "dec3": 0x23,
     "halt": 0xFF
 }
 
@@ -60,7 +74,7 @@ class Assembler:
 
         return False
 
-    def encode_operation(self, instruction, operands):
+    def encode_two_op_instruction(self, instruction, operands):
         line_bin = []
 
         if len(operands) < 2:
@@ -73,6 +87,9 @@ class Assembler:
         line_bin.append(operands[1])
 
         return line_bin
+
+    def encode_one_op_instruction(self, instruction):
+        return [self.instruction_set[instruction]]
 
     def encode_goto(self, operand):
         line_bin = []
@@ -87,9 +104,6 @@ class Assembler:
         line_bin.append(operand[0])
 
         return line_bin
-
-    def encode_cmp(self):
-        return [self.instruction_set["cmp"]]
 
     def encode_halt(self):
         return [self.instruction_set["halt"]]
@@ -127,13 +141,13 @@ class Assembler:
 
     def encode_instruction(self, instruction, operands):
         if instruction in two_operand_instructions:
-            return self.encode_operation(instruction, operands)
+            return self.encode_two_op_instruction(instruction, operands)
+
+        if instruction in one_operand_instructions:
+            return self.encode_one_op_instruction(instruction)
 
         if instruction == "goto":
             return self.encode_goto(operands)
-
-        if instruction == "cmp":
-            return self.encode_cmp()
 
         if instruction == "halt":
             return self.encode_halt()

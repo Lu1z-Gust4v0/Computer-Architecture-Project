@@ -121,9 +121,33 @@ firmware.set_instruction(27, 0b000000000_100_00110001_00000010_001_000_000)
 firmware.set_instruction(283, 0b000000000_100_00010000_00000010_001_000_000)
 
 # if H == 0 goto address
-# H <- H; if alu = 0 goto 281 else goto 29
+# H <- H; if alu = 0 goto 285 else goto 29
 firmware.set_instruction(28, 0b000011101_001_00010100_00000100_000_000_110)
 # pop MBR1; fetch; goto MBR1
 firmware.set_instruction(29, 0b000000000_100_00000000_00000000_001_000_010)
 # goto address
 firmware.set_instruction(285, 0b000000000_100_00010100_00100000_001_000_010)
+
+# inc X1
+# X1 <- X1 + 1; fetch; goto MBR1
+firmware.set_instruction(30, 0b000000000_100_00110101_00010000_001_000_100)
+
+# inc2 X2
+# X1 <- X1 + 1; fetch; goto MBR1
+firmware.set_instruction(31, 0b000000000_100_00110101_00001000_001_000_101)
+
+# inc3 X3
+# X1 <- X1 + 1; fetch; goto MBR1
+firmware.set_instruction(32, 0b000000000_100_00110101_00000100_001_000_110)
+
+# dec X1
+# X1 <- X1 - 1; fetch; goto MBR1
+firmware.set_instruction(33, 0b000000000_100_00110110_00010000_001_000_100)
+
+# dec2 X2
+# X1 <- X1 - 1; fetch; goto MBR1
+firmware.set_instruction(34, 0b000000000_100_00110110_00001000_001_000_101)
+
+# dec3 X3
+# X1 <- X1 - 1; fetch; goto MBR1
+firmware.set_instruction(35, 0b000000000_100_00110110_00000100_001_000_110)
