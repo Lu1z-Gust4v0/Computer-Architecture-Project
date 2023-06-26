@@ -178,7 +178,9 @@ class CPU:
         if OUTPUT == 0:
             self.registers["N"] = 0
             self.registers["Z"] = 1
-        else:
+
+        # Check if alu output is a negative number
+        if ((OUTPUT & 0xFFFFFFFF) >> 31) == 1:
             self.registers["N"] = 1
             self.registers["Z"] = 0
 
