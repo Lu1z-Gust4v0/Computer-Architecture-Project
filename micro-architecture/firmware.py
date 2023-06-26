@@ -59,3 +59,71 @@ firmware.set_instruction(8, 0b000001001_001_00010100_00010000_000_000_100)
 firmware.set_instruction(9, 0b000000000_100_00000000_00000000_001_000_010)
 # goto address
 firmware.set_instruction(265, 0b000000000_100_00010100_00100000_001_000_010)
+
+# add: X2 <- X2 + address[memory]
+# MAR <- MBR1; read; goto 11
+firmware.set_instruction(10, 0b000001011_000_00010100_10000000_010_000_010)
+# X2 <- X2 + MDR; fetch; goto MBR1
+firmware.set_instruction(11, 0b000000000_100_00111100_00001000_001_101_001)
+
+# sub: X2 <- X2 - address[memory]
+# MAR <- MBR1; read; goto 13
+firmware.set_instruction(12, 0b000001101_000_00010100_10000000_010_000_010)
+# X2 <- X2 - MDR; fetch; goto MBR1
+firmware.set_instruction(13, 0b000000000_100_00111111_00001000_001_001_101)
+
+# mov: address[memory] = X2
+# MAR <- MBR1; goto 15
+firmware.set_instruction(14, 0b000001111_000_00010100_10000000_000_000_010)
+# MDR <- X2; write; fetch; goto MBR1
+firmware.set_instruction(15, 0b000000000_100_00010100_01000000_101_000_101)
+
+# if X2 == 0 goto address
+# X2 <- X2; if alu = 0 goto 273 else goto 17
+firmware.set_instruction(16, 0b000010001_001_00010100_00001000_000_000_101)
+# pop MBR1; fetch; goto MBR1
+firmware.set_instruction(17, 0b000000000_100_00000000_00000000_001_000_010)
+# goto address
+firmware.set_instruction(273, 0b000000000_100_00010100_00100000_001_000_010)
+
+# add: X3 <- X3 + address[memory]
+# MAR <- MBR1; read; goto 19
+firmware.set_instruction(18, 0b000010011_000_00010100_10000000_010_000_010)
+# X3 <- X3 + MDR; fetch; goto MBR1
+firmware.set_instruction(19, 0b000000000_100_00111100_00000100_001_110_001)
+
+# sub: X3 <- X3 - address[memory]
+# MAR <- MBR1; read; goto 21
+firmware.set_instruction(20, 0b000010101_000_00010100_10000000_010_000_010)
+# X3 <- X3 - MDR; fetch; goto MBR1
+firmware.set_instruction(21, 0b000000000_100_00111111_00000100_001_001_110)
+
+# mov: address[memory] = X3
+# MAR <- MBR1; goto 23
+firmware.set_instruction(22, 0b000010111_000_00010100_10000000_000_000_010)
+# MDR <- X3; write; fetch; goto MBR1
+firmware.set_instruction(23, 0b000000000_100_00010100_01000000_101_000_110)
+
+# if X3 == 0 goto address
+# X3 <- X3; if alu = 0 goto 281 else goto 25
+firmware.set_instruction(24, 0b000011001_001_00010100_00000100_000_000_110)
+# pop MBR1; fetch; goto MBR1
+firmware.set_instruction(25, 0b000000000_100_00000000_00000000_001_000_010)
+# goto address
+firmware.set_instruction(281, 0b000000000_100_00010100_00100000_001_000_010)
+
+# cmp: X1, X2
+# H <- X1 - X2; if alu < 0 goto 283 else goto 27
+firmware.set_instruction(26, 0b000011011_010_00111111_00000010_000_101_100)
+# H <- 1; fetch; goto MBR1
+firmware.set_instruction(27, 0b000000000_100_00110001_00000010_001_000_000)
+# H <- 0; fetch; goto MBR1
+firmware.set_instruction(283, 0b000000000_100_00010000_00000010_001_000_000)
+
+# if H == 0 goto address
+# H <- H; if alu = 0 goto 281 else goto 29
+firmware.set_instruction(28, 0b000011101_001_00010100_00000100_000_000_110)
+# pop MBR1; fetch; goto MBR1
+firmware.set_instruction(29, 0b000000000_100_00000000_00000000_001_000_010)
+# goto address
+firmware.set_instruction(285, 0b000000000_100_00010100_00100000_001_000_010)
