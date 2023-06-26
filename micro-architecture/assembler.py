@@ -4,21 +4,37 @@ FOUR_BYTES_LIMIT = 4294967296
 ONE_BYTE_LIMIT = 256
 
 instructions = [
-    "add",
-    "sub",
-    "goto",
-    "mov",
-    "jz",
-    "halt",
-    "wb",
-    "ww"
+    "add", "add2", "add3",
+    "sub", "sub2", "sub3",
+    "mov", "mov2", "mov3",
+    "jz", "jz2", "jz3",
+    "jzh", "cmp", "goto"
+    "halt", "wb", "ww"
 ]
+
+two_operand_instructions = [
+    "add", "add2", "add3",
+    "sub", "sub2", "sub3",
+    "mov", "mov2", "mov3",
+    "jz", "jz1", "jz3", "jzh"
+]
+
 instruction_set = {
     "add":  0x01,
+    "add2": 0x0A,
+    "add3": 0x12,
     "sub":  0x03,
+    "sub2": 0x0C,
+    "sub3": 0x14,
     "mov":  0x05,
+    "mov2": 0x0E,
+    "mov3": 0x22,
     "goto": 0x07,
     "jz":   0x08,
+    "jz2":  0x10,
+    "jz3":  0x18,
+    "jzh":  0x1C,
+    "cmp":  0x1A,
     "halt": 0xFF
 }
 
@@ -72,6 +88,9 @@ class Assembler:
 
         return line_bin
 
+    def encode_cmp(self):
+        return [self.instruction_set["cmp"]]
+
     def encode_halt(self):
         return [self.instruction_set["halt"]]
 
@@ -107,11 +126,14 @@ class Assembler:
         return line_bin
 
     def encode_instruction(self, instruction, operands):
-        if instruction in ["add", "sub", "mov", "jz"]:
+        if instruction in two_operand_instructions:
             return self.encode_operation(instruction, operands)
 
         if instruction == "goto":
             return self.encode_goto(operands)
+
+        if instruction == "cmp":
+            return self.encode_cmp()
 
         if instruction == "halt":
             return self.encode_halt()
