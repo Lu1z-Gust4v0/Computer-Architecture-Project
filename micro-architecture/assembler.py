@@ -14,7 +14,8 @@ instructions = [
     "dec", "dec2", "dec3",
     "del", "del2", "del3",
     "mul", "mul2", "div2",
-    "cph", "cph1", "cph2"
+    "cp", "cp1", "cph",
+    "cph2", "cph3"
 ]
 
 instruction_set = {
@@ -43,11 +44,13 @@ instruction_set = {
     "del2": 0x25,
     "del3": 0x26,
     "mul":  0x27,
+    "cp":   0x2B,
+    "cp1":  0x2C,
+    "cph":  0x2D,
+    "cph2": 0x2E,
+    "cph3": 0x2F,
     "mul2": 0x64,
     "div2": 0x65,
-    "cph":  0x66,
-    "cph1": 0x67,
-    "cph2": 0x68,
     "halt": 0xFF
 }
 
@@ -56,15 +59,15 @@ registers_instructions = [
     "dec", "dec2", "dec3",
     "cmp", "del", "del2",
     "del3", "mul", "mul2",
-    "div2", "cph", "chp1",
-    "cph2",
+    "div2", "cph", "cph2",
+    "cph3", "cp", "cp1"
 ]
 
 register_memory_instructions = [
     "add", "add2", "add3",
     "sub", "sub2", "sub3",
     "mov", "mov2", "mov3",
-    "jz", "jz1", "jz3", "jzh"
+    "jz", "jz2", "jz3", "jzh"
 ]
 
 register_memory_instructions_code = [

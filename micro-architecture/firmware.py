@@ -165,14 +165,38 @@ firmware.set_instruction(37, 0b000000000_100_00010000_00001000_000_000_000)
 firmware.set_instruction(38, 0b000000000_100_00010000_00000100_000_000_000)
 
 # mul: X1 <- X1 * X2
-# X2 <- X2; if alu == 0 goto 296 else goto 40
-firmware.set_instruction(39, 0b000101000_001_00010100_00001000_000_000_101)
-# H <- H + X1; goto 41
-firmware.set_instruction(40, 0b000101001_000_00111100_00000010_000_111_100)
-# X2 <- X2 - 1; goto 39
-firmware.set_instruction(41, 0b000100111_000_00110110_00001000_000_000_101)
+# X3 <- X2; goto 40
+firmware.set_instruction(39, 0b000101000_000_00010100_00000100_000_000_101)
+# X3 <- X3; if alu == 0 goto 297 else goto 41
+firmware.set_instruction(40, 0b000101001_001_00010100_00000100_000_000_110)
+# H <- H + X1; goto 42
+firmware.set_instruction(41, 0b000101010_000_00111100_00000010_000_111_100)
+# X3 <- X3 - 1; goto 40
+firmware.set_instruction(42, 0b000101000_000_00110110_00000100_000_000_110)
+# X1 <- H; goto 298
+firmware.set_instruction(297, 0b100101010_000_00010100_00010000_000_000_111)
+# H <- 0; fetch; goto MBR1
+firmware.set_instruction(298, 0b000000000_100_00010000_00000010_001_000_111)
+
+# cp: X1, X2
+# X2 <- H1; fetch; goto MBR1
+firmware.set_instruction(43, 0b000000000_100_00010100_00001000_001_000_100)
+
+# cp1: X1, X3
+# X3 <- H1; fetch; goto MBR1
+firmware.set_instruction(44, 0b000000000_100_00010100_00000100_001_000_100)
+
+# cph H, X1
 # X1 <- H; fetch; goto MBR1
-firmware.set_instruction(296, 0b000000000_100_00010100_00010000_001_000_111)
+firmware.set_instruction(45, 0b000000000_100_00010100_00010000_001_000_111)
+
+# cph1 H, X2
+# X2 <- H; fetch; goto MBR1
+firmware.set_instruction(46, 0b000000000_100_00010100_00001000_001_000_111)
+
+# cph2 H, X3
+# X3 <- H; fetch; goto MBR1
+firmware.set_instruction(47, 0b000000000_100_00010100_00000100_001_000_111)
 
 # mul2: X1 <- X1 * X2
 # X1 <- X1 * X2; fetch; goto MBR1
@@ -181,15 +205,3 @@ firmware.set_instruction(100, 0b000000000_100_00011010_00010000_001_100_101)
 # div2: H <- X1 // X2
 # H <- X1 // X2; fetch; goto MBR1
 firmware.set_instruction(101, 0b000000000_100_00101100_00000010_001_100_101)
-
-# cph X1, H
-# X1 <- H; fetch; goto MBR1
-firmware.set_instruction(102, 0b000000000_100_00010100_00010000_001_000_111)
-
-# cph1 X2, H
-# X2 <- H; fetch; goto MBR1
-firmware.set_instruction(103, 0b000000000_100_00010100_00001000_001_000_111)
-
-# cph2 X3, h
-# X3 <- H; fetch; goto MBR1
-firmware.set_instruction(104, 0b000000000_100_00010100_00000100_001_000_111)
