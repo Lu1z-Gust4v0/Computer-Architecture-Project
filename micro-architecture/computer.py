@@ -3,9 +3,9 @@ from memory import memory
 from clock import clock
 
 # memory[50] = 10
-memory.write_word(50, 3)
+memory.write_word(50, 10)
 # memory[100] = 5
-memory.write_word(100, 2)
+memory.write_word(100, 5)
 
 # X1 <- X1 + memory[50]
 memory.write_byte(1, 1)

@@ -145,33 +145,31 @@ firmware.set_instruction(32, 0b000000000_100_00110101_00000100_000_000_110)
 firmware.set_instruction(33, 0b000000000_100_00110110_00010000_000_000_100)
 
 # dec2 X2
-# X1 <- X1 - 1; goto MBR1
+# X2 <- X2 - 1; goto MBR1
 firmware.set_instruction(34, 0b000000000_100_00110110_00001000_000_000_101)
 
 # dec3 X3
-# X1 <- X1 - 1; goto MBR1
+# X3 <- X3 - 1; goto MBR1
 firmware.set_instruction(35, 0b000000000_100_00110110_00000100_000_000_110)
 
 # del X1
-# X1 <- 0; goto MBR1 
+# X1 <- 0; goto MBR1
 firmware.set_instruction(36, 0b000000000_100_00010000_00010000_000_000_000)
 
 # del2 X2
-# X1 <- 0; goto MBR1 
+# X1 <- 0; goto MBR1
 firmware.set_instruction(37, 0b000000000_100_00010000_00001000_000_000_000)
 
 # del3 X3
-# X1 <- 0; goto MBR1 
+# X1 <- 0; goto MBR1
 firmware.set_instruction(38, 0b000000000_100_00010000_00000100_000_000_000)
 
 # mul: X1 <- X1 * X2
-# H <- X1; goto 40
-firmware.set_instruction(39, 0b000101000_000_00010100_00000010_000_000_100)
-# X2 <- X2 - 1; goto 41
-firmware.set_instruction(40, 0b000101001_000_00110110_00001000_000_000_101)
-# X2 <- X2; if alu == 0 goto else 298 goto 42
-firmware.set_instruction(41, 0b000101010_001_00010100_00001000_000_000_101)
-# X1 <- X1 + H; goto 40
-firmware.set_instruction(42, 0b000101000_000_00111100_00010000_000_100_111)
-# fetch; goto MBR1
-firmware.set_instruction(298, 0b000000000_100_00000000_00000000_001_000_000)
+# X2 <- X2; if alu == 0 goto 296 else goto 40
+firmware.set_instruction(39, 0b000101000_001_00010100_00001000_000_000_101)
+# H <- H + X1; goto 41
+firmware.set_instruction(40, 0b000101001_000_00111100_00000010_000_111_100)
+# X2 <- X2 - 1; goto 39
+firmware.set_instruction(41, 0b000100111_000_00110110_00001000_000_000_101)
+# X1 <- H; fetch; goto MBR1
+firmware.set_instruction(296, 0b000000000_100_00010100_00010000_001_000_111)

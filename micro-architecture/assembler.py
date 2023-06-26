@@ -12,7 +12,8 @@ instructions = [
     "halt", "wb", "ww",
     "inc", "inc2", "inc3",
     "dec", "dec2", "dec3",
-    "del", "del2", "del3"
+    "del", "del2", "del3",
+    "mul"
 ]
 
 instruction_set = {
@@ -39,25 +40,26 @@ instruction_set = {
     "dec3": 0x23,
     "del":  0x24,
     "del2": 0x25,
-    "de3":  0x26,
+    "del3": 0x26,
+    "mul":  0x27,
     "halt": 0xFF
 }
 
-one_operand_instructions = [
+registers_instructions = [
     "inc", "inc2", "inc3",
     "dec", "dec2", "dec3",
     "cmp", "del", "del2",
-    "del3"
+    "del3", "mul"
 ]
 
-two_operand_instructions = [
+register_memory_instructions = [
     "add", "add2", "add3",
     "sub", "sub2", "sub3",
     "mov", "mov2", "mov3",
     "jz", "jz1", "jz3", "jzh"
 ]
 
-reg_memory_instructions_code = [
+register_memory_instructions_code = [
     instruction_set["add"],
     instruction_set["sub"],
     instruction_set["mov"],
@@ -91,7 +93,7 @@ class Assembler:
 
         return False
 
-    def encode_two_op_instruction(self, instruction, operands):
+    def encode_reg_mem_instruction(self, instruction, operands):
         line_bin = []
 
         if len(operands) < 2:
@@ -105,7 +107,7 @@ class Assembler:
 
         return line_bin
 
-    def encode_one_op_instruction(self, instruction):
+    def encode_regs_instruction(self, instruction):
         return [self.instruction_set[instruction]]
 
     def encode_goto(self, operand):
@@ -157,11 +159,11 @@ class Assembler:
         return line_bin
 
     def encode_instruction(self, instruction, operands):
-        if instruction in two_operand_instructions:
-            return self.encode_two_op_instruction(instruction, operands)
+        if instruction in register_memory_instructions:
+            return self.encode_reg_mem_instruction(instruction, operands)
 
-        if instruction in one_operand_instructions:
-            return self.encode_one_op_instruction(instruction)
+        if instruction in registers_instructions:
+            return self.encode_regs_instruction(instruction)
 
         if instruction == "goto":
             return self.encode_goto(operands)
@@ -230,7 +232,7 @@ class Assembler:
             # print("line bin", line)
             for i in range(len(line)):
                 if self.is_token(line[i]):
-                    if (line[i - 1] in reg_memory_instructions_code):
+                    if (line[i - 1] in register_memory_instructions_code):
                         line[i] = self.get_token_byte(line[i]) // 4
                     else:
                         line[i] = self.get_token_byte(line[i])
