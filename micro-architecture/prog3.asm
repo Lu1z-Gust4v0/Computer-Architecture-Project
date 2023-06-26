@@ -12,7 +12,7 @@ main  add  x1, b # x1 = 5 -> 4 -> 3 -> 2 -> 1 -> 0
 
       dec  x1    # x1 = 4 -> 3 -> 2 -> 1 -> 0
       mov  x1, b # b  = 4 -> 3 -> 2 -> 1 -> 0
-      sub  x1, b # x1 = 0
+      del  x1,   # x1 = 0
       
       goto main
 

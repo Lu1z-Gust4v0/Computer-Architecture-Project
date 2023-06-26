@@ -11,7 +11,8 @@ instructions = [
     "jzh", "cmp", "goto",
     "halt", "wb", "ww",
     "inc", "inc2", "inc3",
-    "dec", "dec2", "dec3"
+    "dec", "dec2", "dec3",
+    "del", "del2", "del3"
 ]
 
 instruction_set = {
@@ -36,13 +37,17 @@ instruction_set = {
     "dec":  0x21,
     "dec2": 0x22,
     "dec3": 0x23,
+    "del":  0x24,
+    "del2": 0x25,
+    "de3":  0x26,
     "halt": 0xFF
 }
 
 one_operand_instructions = [
     "inc", "inc2", "inc3",
     "dec", "dec2", "dec3",
-    "cmp",
+    "cmp", "del", "del2",
+    "del3"
 ]
 
 two_operand_instructions = [
@@ -263,6 +268,8 @@ class Assembler:
 
         if self.lines_to_bin():
             self.resolve_tokens()
+            
+            # print("tokens", self.tokens)
             # print("bin", self.lines_bin)
 
             byte_array = [0]
@@ -271,7 +278,8 @@ class Assembler:
                 for byte in line:
                     byte_array.append(byte)
 
-            print(byte_array)
+            # print(byte_array)
+
             with open(output_file, "wb") as output:
                 output.write(bytearray(byte_array))
 
