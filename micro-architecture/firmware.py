@@ -179,24 +179,30 @@ firmware.set_instruction(297, 0b100101010_000_00010100_00010000_000_000_111)
 firmware.set_instruction(298, 0b000000000_100_00010000_00000010_001_000_111)
 
 # cp: X1, X2
-# X2 <- H1; fetch; goto MBR1
+# X2 <- X1; fetch; goto MBR1
 firmware.set_instruction(43, 0b000000000_100_00010100_00001000_001_000_100)
 
 # cp1: X1, X3
-# X3 <- H1; fetch; goto MBR1
+# X3 <- X1; fetch; goto MBR1
 firmware.set_instruction(44, 0b000000000_100_00010100_00000100_001_000_100)
 
 # cph H, X1
 # X1 <- H; fetch; goto MBR1
 firmware.set_instruction(45, 0b000000000_100_00010100_00010000_001_000_111)
 
-# cph1 H, X2
+# cph2 H, X2
 # X2 <- H; fetch; goto MBR1
 firmware.set_instruction(46, 0b000000000_100_00010100_00001000_001_000_111)
 
-# cph2 H, X3
+# cph3 H, X3
 # X3 <- H; fetch; goto MBR1
 firmware.set_instruction(47, 0b000000000_100_00010100_00000100_001_000_111)
+
+# movh: memory[address] = H
+# MAR <- MBR1; goto 49
+firmware.set_instruction(48, 0b000110001_000_00010100_10000000_000_000_010)
+# MDR <- H; write; fetch; goto MBR1
+firmware.set_instruction(49, 0b000000000_100_00010100_01000000_101_000_111)
 
 # mul2: X1 <- X1 * X2
 # X1 <- X1 * X2; fetch; goto MBR1
@@ -205,3 +211,9 @@ firmware.set_instruction(100, 0b000000000_100_00011010_00010000_001_100_101)
 # div2: H <- X1 // X2
 # H <- X1 // X2; fetch; goto MBR1
 firmware.set_instruction(101, 0b000000000_100_00101100_00000010_001_100_101)
+
+# mod2: H <- X1 % X2
+# H <- H * X2; goto 103
+firmware.set_instruction(102, 0b001100111_000_00011010_00000010_000_111_101)
+# H <- X1 - H; fetch; goto MBR1
+firmware.set_instruction(103, 0b000000000_100_00111111_00000010_001_111_100)
