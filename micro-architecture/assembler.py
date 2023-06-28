@@ -1,167 +1,318 @@
 import sys
 
-fsrc = open(str(sys.argv[1]), 'r')
+FOUR_BYTES_LIMIT = 4294967296
+ONE_BYTE_LIMIT = 256
 
-lines = []
-lines_bin = []
-names = []
+instructions = [
+    "add", "add2", "add3",
+    "sub", "sub2", "sub3",
+    "mov", "mov2", "mov3",
+    "jz", "jz2", "jz3",
+    "jzh", "cmp", "goto",
+    "halt", "wb", "ww",
+    "inc", "inc2", "inc3",
+    "dec", "dec2", "dec3",
+    "del", "del2", "del3",
+    "mul", "mul2", "div2",
+    "cp", "cp1", "cph",
+    "cph2", "cph3", "mod2",
+    "movh"
+]
 
-instructions = ['add', 'sub', 'goto', 'mov', 'jz', 'halt', 'wb', 'ww']
-instruction_set = {'add' : 0x02, 
-                   'sub' : 0x06, 
-                   'mov' : 0x0A, 
-                   'goto': 0x0D,
-                   'jz'  : 0x0F, 
-                   'halt': 0xFF}
+instruction_set = {
+    "add":  0x01,
+    "add2": 0x0A,
+    "add3": 0x12,
+    "sub":  0x03,
+    "sub2": 0x0C,
+    "sub3": 0x14,
+    "mov":  0x05,
+    "mov2": 0x0E,
+    "mov3": 0x16,
+    "movh": 0x30,
+    "goto": 0x07,
+    "jz":   0x08,
+    "jz2":  0x10,
+    "jz3":  0x18,
+    "jzh":  0x1C,
+    "cmp":  0x1A,
+    "inc":  0x1E,
+    "inc2": 0x1F,
+    "inc3": 0x20,
+    "dec":  0x21,
+    "dec2": 0x22,
+    "dec3": 0x23,
+    "del":  0x24,
+    "del2": 0x25,
+    "del3": 0x26,
+    "mul":  0x27,
+    "cp":   0x2B,
+    "cp1":  0x2C,
+    "cph":  0x2D,
+    "cph2": 0x2E,
+    "cph3": 0x2F,
+    "mul2": 0x64,
+    "div2": 0x65,
+    "mod2": 0x66,
+    "halt": 0xFF
+}
 
-def is_instruction(str):
-   global instructions
-   inst = False
-   for i in instructions:
-      if i == str:
-         inst = True
-         break
-   return inst
-   
-def is_name(str):
-   global names
-   name = False
-   for n in names:
-      if n[0] == str:
-         name = True
-         break
-   return name
-   
-def encode_2ops(inst, ops):
-   line_bin = []
-   if len(ops) > 1:
-      if ops[0] == 'x':
-         if is_name(ops[1]):
-            line_bin.append(instruction_set[inst])
-            line_bin.append(ops[1])
-   return line_bin
+registers_instructions = [
+    "inc", "inc2", "inc3",
+    "dec", "dec2", "dec3",
+    "cmp", "del", "del2",
+    "del3", "mul", "mul2",
+    "div2", "cph", "cph2",
+    "cph3", "cp", "cp1",
+    "mod2"
+]
 
-def encode_goto(ops):
-   line_bin = []
-   if len(ops) > 0:
-      if is_name(ops[0]):
-         line_bin.append(instruction_set['goto'])
-         line_bin.append(ops[0])
-   return line_bin
-   
-def encode_halt():
-   line_bin = []
-   line_bin.append(instruction_set['halt'])
-   return line_bin
-   
-def encode_wb(ops):
-   line_bin = []
-   if len(ops) > 0:
-      if ops[0].isnumeric():
-         if int(ops[0]) < 256:
-            line_bin.append(int(ops[0]))
-   return line_bin   
+register_memory_instructions = [
+    "add", "add2", "add3",
+    "sub", "sub2", "sub3",
+    "mov", "mov2", "mov3",
+    "movh", "jz", "jz2",
+    "jz3", "jzh", "movh"
+]
 
-def encode_ww(ops):
-   line_bin = []
-   if len(ops) > 0:
-      if ops[0].isnumeric():
-         val = int(ops[0])
-         if val < pow(2,32):
-            line_bin.append(val & 0xFF)
-            line_bin.append((val & 0xFF00) >> 8)
-            line_bin.append((val & 0xFF0000) >> 16)
-            line_bin.append((val & 0xFF000000) >> 24)
-   return line_bin
-      
-def encode_instruction(inst, ops):
-   if inst == 'add' or inst == 'sub' or inst == 'mov' or inst == 'jz':
-      return encode_2ops(inst, ops)
-   elif inst == 'goto':
-      return encode_goto(ops)
-   elif inst == 'halt':
-      return encode_halt()
-   elif inst == 'wb':
-      return encode_wb(ops)
-   elif inst == 'ww':
-      return encode_ww(ops)
-   else:
-      return []
-   
-   
-def line_to_bin_step1(line):
-   line_bin = []
-   if is_instruction(line[0]):
-      line_bin = encode_instruction(line[0], line[1:])
-   else:
-      line_bin = encode_instruction(line[1], line[2:])
-   return line_bin
-   
-def lines_to_bin_step1():
-   global lines
-   for line in lines:
-      line_bin = line_to_bin_step1(line)
-      if line_bin == []:
-         print("Erro de sintaxe na linha ", lines.index(line))
-         return False
-      lines_bin.append(line_bin)
-   return True
+register_memory_instructions_code = [
+    instruction_set["add"],
+    instruction_set["sub"],
+    instruction_set["mov"],
+    instruction_set["add2"],
+    instruction_set["sub2"],
+    instruction_set["mov2"],
+    instruction_set["add3"],
+    instruction_set["sub3"],
+    instruction_set["mov3"],
+    instruction_set["movh"]
+]
 
-def find_names():
-   global lines
-   for k in range(0, len(lines)):
-      is_label = True
-      for i in instructions:
-          if lines[k][0] == i:
-             is_label = False
-             break
-      if is_label:
-         names.append((lines[k][0], k))
-         
-def count_bytes(line_number):
-   line = 0
-   byte = 1
-   while line < line_number:
-      byte += len(lines_bin[line])
-      line += 1
-   return byte
 
-def get_name_byte(str):
-   for name in names:
-      if name[0] == str:
-         return name[1]
-         
-def resolve_names():
-   for i in range(0, len(names)):
-      names[i] = (names[i][0], count_bytes(names[i][1]))
-   for line in lines_bin:
-      for i in range(0, len(line)):
-         if is_name(line[i]):
-            if line[i-1] == instruction_set['add'] or line[i-1] == instruction_set['sub'] or line[i-1] == instruction_set['mov']:
-               line[i] = get_name_byte(line[i])//4
-            else:
-               line[i] = get_name_byte(line[i])
+class Assembler:
+    def __init__(self, instructions, instruction_set):
+        self.instruction_set = instruction_set
+        self.instructions = instructions
+        self.lines = []
+        self.lines_bin = []
+        self.tokens = []
 
-for line in fsrc:
-   tokens = line.replace('\n','').replace(',','').lower().split(" ")
-   i = 0
-   while i < len(tokens):
-      if tokens[i] == '':
-         tokens.pop(i)
-         i -= 1
-      i += 1
-   if len(tokens) > 0:
-      lines.append(tokens)
-   
-find_names()
-if lines_to_bin_step1():
-   resolve_names()
-   byte_arr = [0]
-   for line in lines_bin:
-      for byte in line:
-         byte_arr.append(byte)
-   fdst = open(str(sys.argv[2]), 'wb')
-   fdst.write(bytearray(byte_arr))
-   fdst.close()
+    def is_instruction(self, instruction):
+        if instruction in self.instructions:
+            return True
 
-fsrc.close()
+        return False
+
+    def is_token(self, operand):
+        for token in self.tokens:
+            if token[0] == operand:
+                return True
+
+        return False
+
+    def encode_reg_mem_instruction(self, instruction, operands):
+        line_bin = []
+
+        if len(operands) < 2:
+            return line_bin
+
+        if not self.is_token(operands[1]):
+            return line_bin
+
+        line_bin.append(self.instruction_set[instruction])
+        line_bin.append(operands[1])
+
+        return line_bin
+
+    def encode_regs_instruction(self, instruction):
+        return [self.instruction_set[instruction]]
+
+    def encode_goto(self, operand):
+        line_bin = []
+
+        if len(operand) < 1:
+            return line_bin
+
+        if not self.is_token(operand[0]):
+            return line_bin
+
+        line_bin.append(self.instruction_set["goto"])
+        line_bin.append(operand[0])
+
+        return line_bin
+
+    def encode_halt(self):
+        return [self.instruction_set["halt"]]
+
+    def encode_write_byte(self, operands):
+        line_bin = []
+
+        if len(operands) < 1:
+            return line_bin
+
+        value = operands[0]
+        if not value.isnumeric() or int(value) >= ONE_BYTE_LIMIT:
+            return line_bin
+
+        line_bin.append(int(value))
+
+        return line_bin
+
+    def encode_write_word(self, operands):
+        line_bin = []
+
+        if len(operands) < 1:
+            return line_bin
+
+        value = operands[0]
+        if not value.isnumeric() or int(value) >= FOUR_BYTES_LIMIT:
+            return line_bin
+
+        line_bin.append(int(value) & 0xFF)
+        line_bin.append((int(value) & 0xFF00) >> 8)
+        line_bin.append((int(value) & 0xFF0000) >> 16)
+        line_bin.append((int(value) & 0xFF000000) >> 24)
+
+        return line_bin
+
+    def encode_instruction(self, instruction, operands):
+        if instruction in register_memory_instructions:
+            return self.encode_reg_mem_instruction(instruction, operands)
+
+        if instruction in registers_instructions:
+            return self.encode_regs_instruction(instruction)
+
+        if instruction == "goto":
+            return self.encode_goto(operands)
+
+        if instruction == "halt":
+            return self.encode_halt()
+
+        if instruction == "wb":
+            return self.encode_write_byte(operands)
+
+        if instruction == "ww":
+            return self.encode_write_word(operands)
+
+        return []
+
+    def line_to_bin(self, line):
+        if self.is_instruction(line[0]):
+            return self.encode_instruction(line[0], line[1:])
+
+        return self.encode_instruction(line[1], line[2:])
+
+    def lines_to_bin(self):
+        for line in self.lines:
+            line_bin = self.line_to_bin(line)
+
+            if line_bin == []:
+                print(f"Syntax Error at line {self.lines.index(line)}")
+                return False
+
+            self.lines_bin.append(line_bin)
+
+        return True
+
+    def find_tokens(self):
+        for i in range(len(self.lines)):
+            token = self.lines[i][0]
+            is_label = True
+
+            if self.is_instruction(token):
+                is_label = False
+
+            if is_label:
+                self.tokens.append((token, i))
+
+    def count_bytes(self, line_number):
+        bytes = 1
+        for line in range(line_number):
+            bytes += len(self.lines_bin[line])
+
+        return bytes
+
+    def get_token_byte(self, _token):
+        # print("token", _token)
+        for token in self.tokens:
+            if token[0] == _token:
+                return token[1]
+
+    def resolve_tokens(self):
+        for i in range(len(self.tokens)):
+            self.tokens[i] = (
+                self.tokens[i][0],
+                self.count_bytes(self.tokens[i][1])
+            )
+
+        for line in self.lines_bin:
+            # print("line bin", line)
+            for i in range(len(line)):
+                if self.is_token(line[i]):
+                    if (line[i - 1] in register_memory_instructions_code):
+                        line[i] = self.get_token_byte(line[i]) // 4
+                    else:
+                        line[i] = self.get_token_byte(line[i])
+
+    def remove_end_of_line(self, line):
+        return line.replace("\n", "")
+
+    def remove_commas(self, line):
+        return line.replace(",", "")
+
+    def remove_empty_strings(self, raw_tokens):
+        tokens = []
+        for token in raw_tokens:
+            if token != "":
+                tokens.append(token)
+
+        return tokens
+
+    def compile(self, input_file, output_file):
+        with open(input_file, "r") as input:
+            for raw_line in input:
+                line = self.remove_end_of_line(raw_line)
+                line = self.remove_commas(line)
+                raw_tokens = line.lower().split(" ")
+                tokens = self.remove_empty_strings(raw_tokens)
+
+                if len(tokens) > 0:
+                    self.lines.append(tokens)
+
+        # print("bin", self.lines_bin)
+        # print("tokens", self.tokens)
+        self.find_tokens()
+        # print("bin", self.lines_bin)
+        # print("tokens", self.tokens)
+
+        if self.lines_to_bin():
+            self.resolve_tokens()
+            
+            # print("tokens", self.tokens)
+            # print("bin", self.lines_bin)
+
+            byte_array = [0]
+
+            for line in self.lines_bin:
+                for byte in line:
+                    byte_array.append(byte)
+
+            # print(byte_array)
+
+            with open(output_file, "wb") as output:
+                output.write(bytearray(byte_array))
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Error: You must provide only two arguments")
+        print("Usage: python assembler.py [input].asm [output].bin")
+        return 1
+
+    assembler = Assembler(instructions, instruction_set)
+    assembler.compile(sys.argv[1], sys.argv[2])
+
+    return 0
+
+
+main()

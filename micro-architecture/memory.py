@@ -9,7 +9,7 @@ WORD_SIZE = 4
 
 class Memory:
     def __init__(self, total_space=ONE_MEGABYTE, word_size=WORD_SIZE):
-        self.memory = array("l", [0]) * (total_space // word_size)
+        self.memory = array("L", [0]) * (total_space // word_size)
 
     # Access functions
     def read_word(self, address):
@@ -45,7 +45,6 @@ class Memory:
 
         # Filter others bytes from word
         mask = ~(0xFF << (byte_address << 3))
-
         word_value = self.memory[word_address] & mask
         new_byte_value = byte_value << (byte_address << 3)
         new_word_value = word_value | new_byte_value

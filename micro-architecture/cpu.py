@@ -6,8 +6,8 @@ alu_operations = {
     0b000000: lambda A, B: 0,
     0b011000: lambda A, B: A,
     0b010100: lambda A, B: B,
-    0b011010: lambda A, B: ~A,
-    0b101100: lambda A, B: ~B,
+    0b011010: lambda A, B: A * B,
+    0b101100: lambda A, B: A // B,
     0b111100: lambda A, B: A + B,
     0b111101: lambda A, B: A + B + 1,
     0b111001: lambda A, B: A + 1,
@@ -167,6 +167,9 @@ class CPU:
         INPUT_A = self.BUS_A
         INPUT_B = self.BUS_B
         OUTPUT = 0
+        # alu output registers
+        self.registers["N"] = 0
+        self.registers["Z"] = 0
 
         shift_bits = (control_bits & 0b11000000) >> 6
         operation_bits = control_bits & 0b00111111
@@ -178,7 +181,8 @@ class CPU:
         if OUTPUT == 0:
             self.registers["N"] = 0
             self.registers["Z"] = 1
-        else:
+        # Check if alu output is a negative number
+        elif ((OUTPUT & 0xFFFFFFFF) >> 31) == 1:
             self.registers["N"] = 1
             self.registers["Z"] = 0
 
