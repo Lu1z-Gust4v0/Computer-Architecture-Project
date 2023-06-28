@@ -4,7 +4,9 @@ class Clock:
         self.debug = False
 
     def execution_message(self):
-        print(f"Execution finished in {self.ticks} steps")
+        print("--------------------------------------")
+        print(f"| Execution finished in {self.ticks} steps")
+        print("|")
 
     def set_debug_mode(self):
         print("The debug mode is active")

@@ -8,4 +8,8 @@ disk.read(str(sys.argv[1]))
 
 clock.start(cpu)
 
-print(f"Result\nWord 1: {memory.read_word(1)}\nWord 2: {memory.read_word(2)}")
+print(f"""| Result
+| Word 01: {memory.read_word(1)}
+| Word 02: {memory.read_word(0)}
+--------------------------------------
+""")
