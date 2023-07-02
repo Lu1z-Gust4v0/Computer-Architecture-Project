@@ -1,6 +1,7 @@
 from firmware import firmware
 from memory import memory
-from IFU import ifu
+from ifu import ifu
+from decorators import debug_alu, debug_step
 
 alu_operations = {
     0b000000: lambda A, B: 0,
@@ -81,6 +82,11 @@ class CPU:
         self.BUS_A = 0
         self.BUS_B = 0
         self.BUS_C = 0
+        self.debug = False
+
+    def set_debug_mode(self):
+        print("The debug mode is active")
+        self.debug = True
 
     def read_mbr1(self):
         mbr1 = self.registers["MBR1"]
@@ -105,19 +111,13 @@ class CPU:
         self.ifu.load(self)
 
     def update_pc(self, value):
-        # print(f"PC IS BEING UPDATED {value}")
         self.registers["PC"] = value
         self.ifu.update_imar(value)
-        # print(f"IMAR VALUE {self.ifu.IMAR}")
 
     # Write selected registers into BUS_A and BUS_B (ALU's inputs)
     def read_regs(self, mir):
         register_a = (mir & 0b111000) >> 3
         register_b = mir & 0b111
-
-        # self.ifu.shift_register.print_queue()
-        # print("length", self.ifu.shift_register.length)
-        # print(f"A: {register_a} B: {register_b}")
 
         self.BUS_A = self.registers[reg_code[register_a]]
         self.BUS_B = self.registers[reg_code[register_b]]
@@ -161,6 +161,7 @@ class CPU:
             self.registers["H"] = self.BUS_C
 
     # Emulates the behavior of an ALU
+    @debug_alu
     def alu(self, mit):
         control_bits = (mit >> 17) & 0b11111111
 
@@ -175,8 +176,6 @@ class CPU:
         operation_bits = control_bits & 0b00111111
 
         OUTPUT = alu_operations[operation_bits](INPUT_A, INPUT_B)
-
-        # print("ALU output", OUTPUT)
 
         if OUTPUT == 0:
             self.registers["N"] = 0
@@ -228,12 +227,11 @@ class CPU:
             )
 
     # Emulates one cpu 'step'
+    @debug_step
     def step(self):
         self.registers["MIR"] = self.firmware.get_instruction(
             self.registers["MPC"]
         )
-        # print("instruction:", bin(self.registers["MIR"]))
-        # print("state before", self.registers)
 
         if self.registers["MIR"] == 0:
             return False
@@ -243,9 +241,6 @@ class CPU:
         self.write_regs(self.registers["MIR"])
         self.memory_io(self.registers["MIR"])
         self.next_instruction(self.registers["MIR"])
-
-        # print("state after:", self.registers)
-        # print()
 
         return True
 
